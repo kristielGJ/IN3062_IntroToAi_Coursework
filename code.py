@@ -227,7 +227,7 @@ def kNear():
       print("\nK-neighbors:")
 
       # building the model
-      neigh = KNeighborsClassifier(n_neighbors=3)
+      neigh = KNeighborsClassifier(n_neighbors=)
       neigh.fit(X_train, y_train)
 
       # making predictions
@@ -248,12 +248,11 @@ def kNear():
       plt.title('KNN')
       plt.show() 
 
-
       
-analyse_data()
+#analyse_data()
 
 #logistic()             #70%  (rounded) 
 #decisionTree()         #84%  (rounded) 
 #SVM()                  #95%  (rounded) 
 #nb()                   #81%  (rounded) 
-#kNear()                #93%  (rounded)   
+kNear()                #93%  (rounded)   
