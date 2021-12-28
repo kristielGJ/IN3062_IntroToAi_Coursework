@@ -7,7 +7,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
 
 
-
 from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
@@ -38,13 +37,6 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.80, rando
 
 
 # function for intro analysis - please run using spyder
-# checking for null values
-myFile2.isnull().any()
-
-
-# removing and uneeded comlumns
-#myFile = myFile2.drop('id', axis=1)
-
 
 def analyse_data():
       path = "."  #absolute or relative path to the folder containing the file. 
@@ -113,74 +105,6 @@ def logistic():
     
       print ("\nLogistic Regression:\n")
 
-
-# splitting the data into training and testing
-X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.25, random_state=42)
-
-# function for intro analysis - please run using spyder
-
-def analyse_data():
-      path = "."  #absolute or relative path to the folder containing the file. 
-                #"." for current folder
-    
-      filename_read = os.path.join(path, "train.csv")
-      df = pd.read_csv(filename_read) # for analysis
-
-      '''Start of analysis of data'''
-      # Strip non-numerics
-      df = df.select_dtypes(include=['int', 'float'])
-      
-      print  ("\nCounting of data: \n")
-      
-      #details on the data in numbers 
-      for col in df.columns:
-          print(col + '\n_____________')
-          print(df[col].value_counts())
-          print('_____________________________\n')
-
-      
-      print("\nStatistics: \n")
-
-      #display statistics 
-      get_stats(df)
-
-      #visualise data so that it is clear what the data is showing
-      df.hist(figsize=(20,20))
-      plt.show()
-      #sns.pairplot(df,hue='price_range')
-
-        #heat map isa correlation matrix used to show the correlations between each field 
-      plt.figure(figsize=(16,16))
-      sns.heatmap(df.corr(), annot=True, fmt=".2f")
-      '''End of analysis of data'''
-      
-      
-def get_stats(df):
-    
-      headers = list(df.columns.values)
-      fields = []
-      # Perform basic statistics (mean, variance, standard deviation, z scores) on a dataframe.
-      for field in headers:
-          fields.append({
-              'name' : field,
-              'mean': df[field].mean(),
-              'var': df[field].var(),
-              'sdev': df[field].std(),# how dispersed the data is in relation to the mean
-          
-          })
-          
-          
-      #display statistics 
-      for field in fields:
-          print(field)
-          
-          
-
-#function for ease of access
-def logistic():
-    
-      print ("\nLogistic Regression:\n")
-
       # building the model
       logisticModel = LogisticRegression(max_iter = 1000)
       logisticModel.fit(X_train, y_train)
@@ -201,7 +125,6 @@ def logistic():
       # plotting and printing confusion matrix
       plot_confusion_matrix(logisticModel, X_test, y_test)  
       plt.title('Logistic Regression')
-
       plt.show()
 
 
@@ -233,15 +156,12 @@ def decisionTree():
       # plotting and printing confusion matrix
       plot_confusion_matrix(clf, X_test, y_test) 
       plt.title('Decision Tree')
-      plot_confusion_matrix(clf, X_test, y_test)  
       plt.show()
       
       #reference: https://stackabuse.com/decision-trees-in-python-with-scikit-learn/
 
 
 
-
-#visualise decision tree in itself
 
 def SVM():
         
@@ -258,12 +178,6 @@ def SVM():
       scores = cross_val_score(sv, X, y, cv=10)
       print("%0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
 
-      sv  = SVC(kernel='rbf', random_state = 1)
-      sv.fit(X_train,y_train)
-
-      #making our prediction
-      y_pred = sv.predict(X_test)
-
       #prints accuracy using metrics
       print("\n (metric) Accuracy: ", metrics.accuracy_score(y_test, y_pred), "\n")
 
@@ -274,6 +188,7 @@ def SVM():
       plot_confusion_matrix(sv, X_test, y_test)  
       plt.title('SVM')
       plt.show()
+      
 
       #ref: https://analyticsindiamag.com/understanding-the-basics-of-svm-with-example-and-python-implementation/
       
@@ -294,9 +209,6 @@ def nb():
       scores = cross_val_score(nb, X, y, cv=10)
       print("%0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
 
-      # making predictions
-      y_pred = nb.predict(X_test)
-      
       #prints accuracy using metrics
       print("\n (metric) Accuracy: ", metrics.accuracy_score(y_test, y_pred), "\n")
       
@@ -316,10 +228,6 @@ def kNear():
 
       # building the model
       neigh = KNeighborsClassifier(n_neighbors=)
-      print("\nK-neighbor:\n")
-
-      # building the model
-      neigh = KNeighborsClassifier(n_neighbors=3)
       neigh.fit(X_train, y_train)
 
       # making predictions
@@ -348,24 +256,3 @@ def kNear():
 #SVM()                  #95%  (rounded) 
 #nb()                   #81%  (rounded) 
 kNear()                #93%  (rounded)   
-
-#prints accuracy using metrics
-print("\n (metric) Accuracy: ", metrics.accuracy_score(y_test, y_pred), "\n")
-      
-# printing the classification report 
-print(classification_report(y_test,y_pred))
-
-# plotting and printing confusion matrix
-plot_confusion_matrix(neigh, X_test,y_pred)
-plt.show() 
-
-
-      
-#analyse_data()
-
-#logistic()             #70%  (rounded) 
-#decisionTree()         #79%  (rounded) 
-#SVM()                  #94%  (rounded) 
-#nb()                   #78%  (rounded) 
-#kNear()                #90%  (rounded)            
-
