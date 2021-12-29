@@ -2,7 +2,8 @@
 import os
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt  
+import matplotlib.pyplot as plt
+from sklearn import metrics
 from sklearn.model_selection import train_test_split 
 from sklearn.model_selection import cross_val_score
 
@@ -15,10 +16,16 @@ from sklearn.neighbors import KNeighborsClassifier
 
 
 from sklearn.metrics import classification_report
-from sklearn import metrics
 from sklearn.metrics import plot_confusion_matrix
-from scipy.stats import zscore
+from sklearn.model_selection import validation_curve
+
+#creating a design profile
 import seaborn as sns
+sns.set(rc={'figure.figsize': [10, 10]}, font_scale=1.2)
+
+#filtering to ignore warnings
+import warnings
+warnings.filterwarnings('ignore')
 
 
 # import dataset
@@ -31,12 +38,13 @@ X = dataset[['battery_power', 'blue', 'clock_speed', 'dual_sim', 'fc', 'four_g',
 y = dataset['price_range']
 
 
+
 # splitting the data into training and testing 80/20
-X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.80, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.60, random_state=42)
 
 
 
-# function for intro analysis - please run using spyder
+# functions for initial investigation - please run using spyder
 
 def analyse_data():
       path = "."  #absolute or relative path to the folder containing the file. 
@@ -97,16 +105,49 @@ def get_stats(df):
       for field in fields:
           print(field)
           
-          
 
-#functions for models for ease of access
+def valC(model, paramName, interval, range):                       # Created specific parameters to be changed for each model
+
+      # Range for the parameter (from 1 to range)
+      paramRange = np.arange(1, range, 1)
+
+      # Calculate accuracy on training and test set using the parameter with 10-fold cross validation, parameter and model can be changed by the user. 
+      train_score, test_score = validation_curve(model(), X_train, y_train, param_name = paramName, param_range = paramRange, cv = interval, scoring = "accuracy")
+      
+
+      # Calculating mean and standard deviation of training and testing score
+      trainScore_mean = np.mean(train_score, axis = 1)
+      std_train_score = np.std(train_score, axis = 1)
+      testScore_mean = np.mean(test_score, axis = 1)
+      std_test_score = np.std(test_score, axis = 1)
+      
+
+     
+      # Plotting mean accuracy scores for training and testing scores
+      plt.plot(paramRange, trainScore_mean,
+      label = "Training Score", color = 'blue')
+      plt.plot(paramRange, testScore_mean,
+      label = "Cross Validation Score", color = 'green')
+      
+       # Plotting graph elements
+      plt.title("Validation Curve")
+      plt.xlabel(paramName)
+      plt.ylabel("Accuracy")
+      plt.tight_layout()
+      plt.legend(loc = 'best')
+      plt.show()
+
+
+
+      
+#functions for models, for ease of access
 
 def logistic():
     
       print ("\nLogistic Regression:\n")
 
       # building the model
-      logisticModel = LogisticRegression(max_iter = 1000)
+      logisticModel = LogisticRegression(max_iter = 10000)
       logisticModel.fit(X_train, y_train)
 
       # making our predicitons
@@ -137,7 +178,7 @@ def decisionTree():
       print("\nDecision Tree:\n")
 
       # building the model
-      clf = DecisionTreeClassifier()
+      clf = DecisionTreeClassifier(max_depth = 7)                         #max_features=20
       clf = clf.fit(X_train,y_train)
 
       # making the prediction
@@ -161,14 +202,12 @@ def decisionTree():
       #reference: https://stackabuse.com/decision-trees-in-python-with-scikit-learn/
 
 
-
-
 def SVM():
         
       print("\nSVM:\n")
 
       # building the model
-      sv  = SVC(kernel='rbf', C=1, random_state = 42)
+      sv  = SVC(kernel='rbf', C=240, random_state = 42)
       sv.fit(X_train,y_train)
       
       #making our prediction
@@ -193,8 +232,7 @@ def SVM():
       #ref: https://analyticsindiamag.com/understanding-the-basics-of-svm-with-example-and-python-implementation/
       
 
-      
-def nb():
+def nB():
        
       print("\nNaive Bayes:\n")
 
@@ -219,7 +257,8 @@ def nb():
       plot_confusion_matrix(nb, X_test,y_pred)
       plt.title('Naive Bayes')
       plt.show()
-
+      
+      
 
 
 def kNear():
@@ -227,7 +266,7 @@ def kNear():
       print("\nK-neighbors:")
 
       # building the model
-      neigh = KNeighborsClassifier(n_neighbors=)
+      neigh = KNeighborsClassifier(n_neighbors=9)  #using the validation curve - we found the higher number of neighbors, the higher the accuracy. 3 neighbors gave 93% and 9 neighbors gave 95% accuracy.
       neigh.fit(X_train, y_train)
 
       # making predictions
@@ -248,11 +287,49 @@ def kNear():
       plt.title('KNN')
       plt.show() 
 
-      
+
+
+
 #analyse_data()
 
-#logistic()             #70%  (rounded) 
-#decisionTree()         #84%  (rounded) 
-#SVM()                  #95%  (rounded) 
-#nb()                   #81%  (rounded) 
-kNear()                #93%  (rounded)   
+
+#logistic()             #70%  (rounded)     #after changing training size from 0.8 to 0.6 now 73% from 70%
+#decisionTree()         #83%  (rounded)     #after changing max_depth from n/a to 7, increase from 80% to 83%
+#SVM()                  #95%  (rounded)     #after changing the C value from 1 to 240 now 97% from 95% 
+#nB()                   #81%  (rounded)      
+#kNear()                #91%  (rounded)     #after changing the no. neighbors from 3 to 20, accuracy increased from 90% to 93%
+
+
+
+#valC(KNeighborsClassifier, "n_neighbors", 10, 20)                 #how to use: val(modelType, "parameter", folds, range)
+#valC(DecisionTreeClassifier, "max_features", 10, 35)               #there are a maximum of 20 features 
+#valC(DecisionTreeClassifier, "max_depth", 10, 20)       
+#valC(SVC, "C", 10, 500)             # after changing the C value from 1 to 240 now 97% from 95%  
+#valC(SVC, "max_iter", 10, 500)      # shows that around 86 to 94 is the optinmal result (increment is too small)
+#valC(LogisticRegression, "max_iter", 10, 500)
+#valC(GaussianNB, "var_smoothing", 10, 0.000000001) #to test, this we had to change the minimum values seen in val(). 
+
+
+
+'''
+
+README
+
+To use the program - un comment specific lines to run specific functions. 
+breakdown: 
+
+analyse_data() --> code used for initial investigation
+
+logistic()
+decisionTree()
+...
+...         --> functions to run each model
+
+
+
+valC(KNeighborsClassifier, "n_neighbors", 10, 100)  
+... 
+...         --> specific functions for each model, to run validation curves.   
+                how to use: valC(modelType, "parameter", folds, range)
+
+'''
